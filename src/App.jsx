@@ -3,6 +3,7 @@
 import { AuthProvider, useAuth } from "./useAuth";
 import LoginPage   from "./LoginPage";
 import SoporteChat from "./SoporteChat";
+import AdminPanel from "./AdminPanel";
 
 const css = `
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
@@ -49,28 +50,7 @@ function AppRoutes() {
   }
 
   // Admin → panel (próxima iteración)
-  if (user.role === "admin") {
-    return (
-      <>
-        <style>{css}</style>
-        <div className="loading">
-          <span>👋 Hola, {user.full_name}</span>
-          <span style={{ fontSize: "12px" }}>Panel de administración — próximamente</span>
-          <button
-            onClick={logout}
-            style={{
-              marginTop: "8px", padding: "8px 16px",
-              background: "none", border: "1px solid #e1e4e8",
-              borderRadius: "8px", cursor: "pointer",
-              fontSize: "13px", color: "#6b7280"
-            }}
-          >
-            Cerrar sesión
-          </button>
-        </div>
-      </>
-    );
-  }
+  if (user.role === "admin") return <AdminPanel />;
 
   // Rol desconocido → logout automático
   logout();
