@@ -1,12 +1,14 @@
 /* AdminPanel.jsx
    Shell del panel de administración — navegación entre secciones
-*/
+
+  AdminPanel.jsx — con sección de Configuración agregada */
 
 import { useState } from "react";
 import { useAuth } from "./useAuth";
-import LearnersSection     from "./admin/LearnersSection";
-import CatalogSection      from "./admin/CatalogSection";
-import SessionsSection     from "./admin/SessionsSection";
+import LearnersSection  from "./admin/LearnersSection";
+import CatalogSection   from "./admin/CatalogSection";
+import SessionsSection  from "./admin/SessionsSection";
+import ConfigSection    from "./admin/ConfigSection";
 
 const css = `
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
@@ -38,23 +40,17 @@ const css = `
 
   body { background: var(--bg); font-family: var(--sans); color: var(--text); }
 
-  .shell {
-    display: flex; height: 100dvh;
-  }
+  .shell { display: flex; height: 100dvh; }
 
   /* ── Sidebar ─────────────────────────────────────────────────────────────── */
   .sidebar {
     width: 240px; flex-shrink: 0;
-    background: var(--surface);
-    border-right: 1px solid var(--border);
-    display: flex; flex-direction: column;
-    padding: 20px 14px;
+    background: var(--surface); border-right: 1px solid var(--border);
+    display: flex; flex-direction: column; padding: 20px 14px;
   }
-
   .sidebar-brand {
     display: flex; align-items: center; gap: 10px;
-    padding: 8px 10px 20px;
-    border-bottom: 1px solid var(--border);
+    padding: 8px 10px 20px; border-bottom: 1px solid var(--border);
     margin-bottom: 16px;
   }
   .brand-icon {
@@ -63,7 +59,6 @@ const css = `
     display: flex; align-items: center; justify-content: center;
     font-size: 15px; flex-shrink: 0;
   }
-  .brand-text { line-height: 1.25; }
   .brand-title { font-size: 13px; font-weight: 600; }
   .brand-sub   { font-size: 11px; color: var(--dim); font-family: var(--mono); }
 
@@ -81,69 +76,62 @@ const css = `
     background: none; border: none; cursor: pointer;
     transition: background .12s, color .12s;
   }
-  .nav-item:hover { background: var(--surface2); color: var(--text); }
+  .nav-item:hover  { background: var(--surface2); color: var(--text); }
   .nav-item.active { background: var(--blue-light); color: var(--blue-dk); font-weight: 600; }
   .nav-icon { font-size: 15px; width: 18px; text-align: center; flex-shrink: 0; }
 
   .sidebar-footer {
-    margin-top: auto;
-    padding-top: 16px; border-top: 1px solid var(--border);
+    margin-top: auto; padding-top: 16px; border-top: 1px solid var(--border);
   }
   .user-chip {
-    display: flex; align-items: center; gap: 10px;
-    padding: 8px 10px; border-radius: var(--r);
+    display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: var(--r);
   }
   .user-avatar {
     width: 30px; height: 30px; border-radius: 50%;
     background: var(--surface2); border: 1px solid var(--border);
     display: flex; align-items: center; justify-content: center;
-    font-size: 13px; font-weight: 600; color: var(--dim);
-    flex-shrink: 0;
+    font-size: 13px; font-weight: 600; color: var(--dim); flex-shrink: 0;
   }
   .user-name { font-size: 12.5px; font-weight: 600; line-height: 1.3; }
   .user-role { font-size: 11px; color: var(--dim); }
   .btn-logout {
-    width: 100%; margin-top: 8px;
-    font-size: 12px; color: var(--dim);
-    background: none; border: 1px solid var(--border);
-    border-radius: var(--r); padding: 7px;
-    cursor: pointer; transition: border-color .15s, color .15s;
+    width: 100%; margin-top: 8px; font-size: 12px; color: var(--dim);
+    background: none; border: 1px solid var(--border); border-radius: var(--r);
+    padding: 7px; cursor: pointer; transition: border-color .15s, color .15s;
   }
   .btn-logout:hover { border-color: var(--red); color: var(--red); }
 
-  /* ── Main content ───────────────────────────────────────────────────────── */
-  .main {
-    flex: 1; overflow-y: auto;
-    padding: 32px 40px;
-  }
+  /* ── Main ────────────────────────────────────────────────────────────────── */
+  .main { flex: 1; overflow-y: auto; padding: 32px 40px; }
   .main-header { margin-bottom: 24px; }
   .main-title { font-size: 21px; font-weight: 700; }
   .main-sub   { font-size: 13.5px; color: var(--dim); margin-top: 3px; }
 `;
 
 const SECTIONS = [
-  { id: "learners",  label: "Learners",     icon: "👤", group: "Usuarios" },
-  { id: "names",     label: "Clientes",     icon: "🪪", group: "Catálogo" },
-  { id: "incidents", label: "Incidentes",   icon: "⚠️", group: "Catálogo" },
-  { id: "personas",  label: "Personalidades", icon: "🎭", group: "Catálogo" },
-  { id: "sessions",  label: "Sesiones",     icon: "📊", group: "Reportes" },
+  { id: "learners",    label: "Learners",        icon: "👤", group: "Usuarios"       },
+  { id: "names",       label: "Clientes",         icon: "🪪", group: "Catálogo"       },
+  { id: "incidents",   label: "Incidentes",       icon: "⚠️", group: "Catálogo"       },
+  { id: "personas",    label: "Personalidades",   icon: "🎭", group: "Catálogo"       },
+  { id: "sessions",    label: "Sesiones",         icon: "📊", group: "Reportes"       },
+  { id: "config",      label: "Configuración",    icon: "⚙️", group: "Sistema"        },
 ];
 
 const TITLES = {
-  learners:  ["Learners", "Crea, edita y carga especialistas en lote"],
-  names:     ["Catálogo de clientes", "Nombres ficticios usados en las simulaciones"],
-  incidents: ["Catálogo de incidentes", "Problemas técnicos que enfrentan los learners"],
-  personas:  ["Catálogo de personalidades", "Perfiles de comportamiento del cliente-IA"],
-  sessions:  ["Sesiones", "Historial de práctica de todos los learners"],
+  learners:  ["Learners",           "Crea, edita y carga especialistas en lote"],
+  names:     ["Clientes",           "Nombres ficticios usados en las simulaciones"],
+  incidents: ["Incidentes",         "Problemas técnicos que enfrentan los learners"],
+  personas:  ["Personalidades",     "Perfiles de comportamiento del cliente-IA"],
+  sessions:  ["Sesiones",           "Historial de práctica de todos los learners"],
+  config:    ["Configuración",      "Edita el prompt de evaluación, criterios y tiempos"],
 };
 
 export default function AdminPanel() {
   const { user, logout } = useAuth();
   const [section, setSection] = useState("learners");
 
-  const groups = [...new Set(SECTIONS.map(s => s.group))];
+  const groups  = [...new Set(SECTIONS.map(s => s.group))];
   const [title, sub] = TITLES[section];
-
   const initials = (user?.full_name || "A")
     .split(" ").slice(0, 2).map(w => w[0]).join("").toUpperCase();
 
@@ -151,12 +139,10 @@ export default function AdminPanel() {
     <>
       <style>{css}</style>
       <div className="shell">
-
-        {/* Sidebar */}
         <nav className="sidebar">
           <div className="sidebar-brand">
             <div className="brand-icon">🎧</div>
-            <div className="brand-text">
+            <div>
               <div className="brand-title">Soporte TI</div>
               <div className="brand-sub">admin</div>
             </div>
@@ -190,7 +176,6 @@ export default function AdminPanel() {
           </div>
         </nav>
 
-        {/* Main content */}
         <main className="main">
           <div className="main-header">
             <div className="main-title">{title}</div>
@@ -202,8 +187,8 @@ export default function AdminPanel() {
           {section === "incidents" && <CatalogSection type="incidents" />}
           {section === "personas"  && <CatalogSection type="personalities" />}
           {section === "sessions"  && <SessionsSection />}
+          {section === "config"    && <ConfigSection />}
         </main>
-
       </div>
     </>
   );
